@@ -1,0 +1,16 @@
+{
+  "name": "capital-one",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "author": "Amy Ho",
+  "devDependencies": {
+    "nodemon": "1.11.0"
+  },
+  "dependencies": {
+    "express": "4.14.1"
+  }
+}
