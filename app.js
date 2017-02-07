@@ -1,13 +1,26 @@
-let express = require('express');
-let app = express();
+'use strict';
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const measurements = require('./routes/measurements');
+
 
 /**
  * Setup Application
  */
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.json({ type: 'application/json'}));
 const portToUse = process.env.PORT || 3000;
-app.listen(portToUse);
-console.log('application listening on port', portToUse);
+app.listen(portToUse, function () {
+    console.log('application listening on port', portToUse);
+});
 
-app.get('/', (req, res) => res.json({
-    message: 'Welcome'
-}));
+
+/**
+ * Routes
+ */
+app.post('/measurements', measurements.postMeasurement);
+
+
+module.exports = app;
