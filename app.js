@@ -2,7 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const measurements = require('./routes/measurements');
+const measurementRoutes = require('./routes/measurement.routes');
 
 
 /**
@@ -20,7 +20,9 @@ app.listen(portToUse, function () {
 /**
  * Routes
  */
-app.post('/measurements', measurements.postMeasurement);
+app.post('/measurements', measurementRoutes.postMeasurement);
+app.route('/measurements/:timestamp')
+    .get(measurementRoutes.getMeasurement);
 
 
 module.exports = app;
