@@ -52,6 +52,12 @@ var MeasurementRoutes = ( () => {
         if (!timestamp) {
             res.status(404);
             res.end();
+            return;
+        }
+        if (!MeasurementValidator.validateMeasurement(req.body)) {
+            res.status(400);
+            res.end();
+            return
         }
         measurements.update(timestamp, req.body);
         res.status(204);
