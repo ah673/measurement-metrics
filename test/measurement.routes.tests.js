@@ -78,46 +78,46 @@ describe('Measurements RESTful Endpoint', () => {
     });
 
     describe('Get a measurement', () => {
-        const measurements = [
-            {
-                timestamp: '2015-09-01T16:00:00.000Z',
-                temperature: 27.1,
-                dewPoint: 16.7,
-                precipitation: 0
-            },
-            {
-                timestamp: '2015-09-01T16:10:00.000Z',
-                temperature: 27.3,
-                dewPoint: 16.9,
-                precipitation: 0
-            },
-            {
-                timestamp: '2015-09-01T16:20:00.000Z',
-                temperature: 27.5,
-                dewPoint: 17.1,
-                precipitation: 0
-            },
-            {
-                timestamp: '2015-09-01T16:30:00.000Z',
-                temperature: 27.4,
-                dewPoint: 17.3,
-                precipitation: 0
-            },
-            {
-                timestamp: '2015-09-01T16:40:00.000Z',
-                temperature: 27.2,
-                dewPoint: 17.2,
-                precipitation: 0
-            },
-            {
-                timestamp: '2015-09-01T16:40:00.000Z',
-                temperature: 28.1,
-                dewPoint: 18.3,
-                precipitation: 0
-            }
-        ];
+        beforeEach((done) => {
+            const measurements = [
+                {
+                    timestamp: '2015-09-01T16:00:00.000Z',
+                    temperature: 27.1,
+                    dewPoint: 16.7,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:10:00.000Z',
+                    temperature: 27.3,
+                    dewPoint: 16.9,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:20:00.000Z',
+                    temperature: 27.5,
+                    dewPoint: 17.1,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:30:00.000Z',
+                    temperature: 27.4,
+                    dewPoint: 17.3,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:40:00.000Z',
+                    temperature: 27.2,
+                    dewPoint: 17.2,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:40:00.000Z',
+                    temperature: 28.1,
+                    dewPoint: 18.3,
+                    precipitation: 0
+                }
+            ];
 
-        beforeEach( (done)=>{
             chai.request(server)
                 .post('/measurements')
                 .send(measurements)
@@ -148,5 +148,63 @@ describe('Measurements RESTful Endpoint', () => {
             });
         });
 
+    });
+
+    describe('Update a measurement', () => {
+        beforeEach( (done)=> {
+            const measurements = [
+                {
+                    timestamp: '2015-09-01T16:00:00.000Z',
+                    temperature: 27.1,
+                    dewPoint: 16.7,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:10:00.000Z',
+                    temperature: 27.3,
+                    dewPoint: 16.9,
+                    precipitation: 0
+                }
+            ];
+            chai.request(server)
+            .post('/measurements')
+            .send(measurements)
+            .end( (err, res) => {
+                done();
+            });
+        });
+        it('should be able to update a measurement of a specified time', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const updatedObject = {
+                timestamp: timestamp,
+                temperature: 27.1,
+                dewPoint: 16.7,
+                precipitation: 15.2
+            };
+
+            chai.request(server)
+            .put(`/measurements/${timestamp}`)
+            .send(updatedObject)
+            .end((err, res) => {
+                res.should.have.status(204);
+                res.body.should.be.a('object');
+
+                chai.request(server)
+                .get(`/measurements/${timestamp}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('object');
+                    res.body.temperature.should.equal(updatedObject.temperature);
+                    res.body.dewPoint.should.equal(updatedObject.dewPoint);
+                    res.body.precipitation.should.equal(updatedObject.precipitation);
+                    done();
+
+                });
+            });
+        });
+
+        // it ('should not allow update to invalid value', (done) => {
+        //
+        // });
     });
 });

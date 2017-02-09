@@ -33,6 +33,10 @@ var MeasurementRoutes = ( () => {
     }
 
     function getMeasurement (req, res) {
+        if (!req.params.timestamp) {
+            res.status(404);
+            res.end();
+        }
         const retrievedValue = measurements.getValue(req.params.timestamp);
         if (retrievedValue){
             res.status(200);
@@ -43,13 +47,25 @@ var MeasurementRoutes = ( () => {
         }
     }
 
+    function updateMeasurement(req, res) {
+        const timestamp = req.params.timestamp;
+        if (!timestamp) {
+            res.status(404);
+            res.end();
+        }
+        measurements.update(timestamp, req.body);
+        res.status(204);
+        res.end();
+    }
+
     function insertMeasurement (measurement) {
         measurements.insert(measurement.timestamp, measurement);
     }
 
     return {
         postMeasurement: postMeasurement,
-        getMeasurement: getMeasurement
+        getMeasurement: getMeasurement,
+        updateMeasurement: updateMeasurement
     }
 })();
 

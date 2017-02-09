@@ -22,7 +22,8 @@ app.listen(portToUse, function () {
  */
 app.post('/measurements', measurementRoutes.postMeasurement);
 app.route('/measurements/:timestamp')
-    .get(measurementRoutes.getMeasurement);
+    .get(measurementRoutes.getMeasurement)
+    .put(measurementRoutes.updateMeasurement);
 
 
 module.exports = app;

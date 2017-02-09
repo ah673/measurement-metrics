@@ -27,12 +27,22 @@ describe ('Measurements', () => {
         should.equal(retrievedValue, null);
     });
 
-    it ('should insertValues in sorted order', () => {
+    it ('should insert values in sorted order', () => {
         measurements.insert('B', 'b');
         measurements.insert('A', 'a');
 
         measurements.sortedArray.length.should.equal(2);
         measurements.sortedArray[0].value.should.equal('a');
+
+    });
+
+    it ('should insert timestamps in sorted order', () => {
+        measurements.insert('2015-09-01T16:00:00.000Z', 'a');
+        measurements.insert('2015-09-01T16:10:00.000Z', 'b');
+
+        measurements.sortedArray.length.should.equal(2);
+        measurements.sortedArray[0].value.should.equal('a');
+        measurements.sortedArray[1].value.should.equal('b');
 
     });
 
