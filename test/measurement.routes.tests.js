@@ -230,8 +230,54 @@ describe('Measurements RESTful Endpoint', () => {
 
                 });
             });
-
-
         });
+
+        it ('should not allow update with mismatched timestamps', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const updatedObject = {
+                timestamp: '2015-09-02T16:00:00.000Z',
+                temperature: 27.1,
+                dewPoint: 16.7,
+                precipitation: 15.2
+            };
+
+            chai.request(server)
+            .put(`/measurements/${timestamp}`)
+            .send(updatedObject)
+            .end((err, res) => {
+                res.should.have.status(409);
+
+                chai.request(server)
+                .get(`/measurements/${timestamp}`)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('object');
+                    res.body.temperature.should.equal(27.1);
+                    res.body.dewPoint.should.equal(16.7);
+                    res.body.precipitation.should.equal(0);
+                    done();
+
+                });
+            });
+        });
+
+        it ('should not replace measurement for timestamp that does not exist', (done) => {
+            const timestamp = '2015-09-02T16:00:00.000Z';
+            const updatedObject = {
+                timestamp: timestamp,
+                temperature: 27.1,
+                dewPoint: 16.7,
+                precipitation: 15.2
+            };
+
+            chai.request(server)
+            .put(`/measurements/${timestamp}`)
+            .send(updatedObject)
+            .end((err, res) => {
+                res.should.have.status(404);
+                done();
+            });
+        });
+
     });
 });

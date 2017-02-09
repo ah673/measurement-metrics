@@ -49,17 +49,29 @@ var MeasurementRoutes = ( () => {
 
     function updateMeasurement(req, res) {
         const timestamp = req.params.timestamp;
+        const measurement = req.body;
         if (!timestamp) {
             res.status(404);
             res.end();
             return;
         }
-        if (!MeasurementValidator.validateMeasurement(req.body)) {
+
+        if (timestamp !== measurement.timestamp) {
+            res.status(409);
+            res.end();
+            return;
+        }
+        if (!MeasurementValidator.validateMeasurement(measurement)) {
             res.status(400);
             res.end();
-            return
+            return;
         }
-        measurements.update(timestamp, req.body);
+        const updated = measurements.update(timestamp, req.body);
+        if (updated === null) {
+            res.status(404);
+            res.end();
+            return;
+        }
         res.status(204);
         res.end();
     }
