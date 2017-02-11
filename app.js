@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const measurementRoutes = require('./routes/measurement.routes');
 const statRoutes = require('./routes/statistics.routes');
+const clearAllRoute = require('./routes/clear-all.routes');
 
 
 /**
@@ -23,7 +24,7 @@ let server = app.listen((process.env.PORT || 3000), function () {
 /**
  * Routes
  */
-app.get('/clearAll', measurementRoutes.clearAll);
+app.post('/clearAll', clearAllRoute.clearAll);
 app.post('/measurements', measurementRoutes.postMeasurement);
 app.route('/measurements/:timestamp')
     .get(measurementRoutes.getMeasurement)

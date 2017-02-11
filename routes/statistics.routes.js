@@ -1,8 +1,6 @@
 'use strict';
 
 const measurements = require('../lib/measurements');
-const MeasurementValidator = require('../lib/measurement-validator');
-const moment = require('moment');
 
 var StatisticRoutes = (function () {
     function getStatistics (req, res) {

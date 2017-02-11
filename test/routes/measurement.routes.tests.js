@@ -11,9 +11,9 @@ chai.use(chaiHttp);
 describe('Measurements RESTful Endpoint', () => {
     afterEach ((done) => {
         chai.request(server)
-            .get('/clearAll')
+            .post('/clearAll')
             .end((err, res) => {
-                res.should.have.status(200);
+                res.should.have.status(204);
                 done();
             });
     });

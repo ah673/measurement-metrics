@@ -138,23 +138,12 @@ var MeasurementRoutes = ( () => {
         measurements.insert(measurement.timestamp, measurement);
     }
 
-
-    function clearAll (req, res) {
-        measurements.clearAll();
-        res.status(200);
-        res.end();
-    }
-
-
-
     return {
         postMeasurement: postMeasurement,
         getMeasurement: getMeasurement,
         putMeasurement: putMeasurement,
         patchMeasurement: patchMeasurement,
         deleteMeasurement: deleteMeasurement,
-        clearAll: clearAll,
-
     }
 })();
 
