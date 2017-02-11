@@ -77,7 +77,25 @@ var MeasurementRoutes = ( () => {
     }
 
     function patchMeasurement (req, res) {
-       measurements.update(req.params.timestamp, req.body);
+        const measurement = req.body;
+        if (!MeasurementValidator.validateMeasurement(measurement)) {
+            res.status(400);
+            res.end();
+            return;
+        }
+
+        if (req.params.timestamp !== measurement.timestamp) {
+            res.status(409);
+            res.end();
+            return;
+        }
+        const updated = measurements.update(req.params.timestamp, measurement);
+        if (updated === null) {
+            res.status(404);
+            res.end();
+            return;
+        }
+
         res.status(204);
         res.end();
     }

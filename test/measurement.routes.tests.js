@@ -147,11 +147,18 @@ describe('Measurements RESTful Endpoint', () => {
         });
 
         it('should not be able to retrieve a measurement that does not exist', (done) => {
+            const timestamp = '2015-09-01T16:50:00.000Z';
             chai.request(server)
-            .get('/measurements/2015-09-01T16:50:00.000Z')
+            .get(`/measurements/${timestamp}`)
             .end((err, res) => {
                 res.should.have.status(404);
-                done();
+
+                chai.request(server)
+                    .get(`/measurements/${timestamp}`)
+                    .end((err, res) => {
+                        res.should.have.status(404);
+                        done();
+                    });
             });
         });
 
@@ -282,7 +289,14 @@ describe('Measurements RESTful Endpoint', () => {
             .send(updatedObject)
             .end((err, res) => {
                 res.should.have.status(404);
-                done();
+
+                chai.request(server)
+                    .get(`/measurements/${timestamp}`)
+                    .end((err, res) => {
+                        res.should.have.status(404);
+                        done();
+
+                    });
             });
         });
 
@@ -339,6 +353,82 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
+        it ('should not update a measurement when invalid values supplied', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const fieldsToUpdate = {
+                timestamp: timestamp,
+                precipitation: 'not a number'
+            };
+
+            chai.request(server)
+                .patch(`/measurements/${timestamp}`)
+                .send(fieldsToUpdate)
+                .end((err, res) => {
+                    res.should.have.status(400);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.temperature.should.equal(27.1);
+                            res.body.dewPoint.should.equal(16.7);
+                            res.body.precipitation.should.equal(0);
+                            done();
+
+                        });
+                });
+        });
+
+        it ('should not update a measurement with mismatched timestamps', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const fieldsToUpdate = {
+                timestamp: '2015-09-02T16:00:00.000Z',
+                precipitation: 12.3
+            };
+
+            chai.request(server)
+                .patch(`/measurements/${timestamp}`)
+                .send(fieldsToUpdate)
+                .end((err, res) => {
+                    res.should.have.status(409);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.temperature.should.equal(27.1);
+                            res.body.dewPoint.should.equal(16.7);
+                            res.body.precipitation.should.equal(0);
+                            done();
+
+                        });
+                });
+        });
+
+        it ('should not update metrics of a measurement that does not exist', (done) => {
+            const timestamp = '2015-09-02T16:00:00.000Z';
+            const fieldsToUpdate = {
+                timestamp: timestamp,
+                precipitation: 12.3
+            };
+
+            chai.request(server)
+                .patch(`/measurements/${timestamp}`)
+                .send(fieldsToUpdate)
+                .end((err, res) => {
+                    res.should.have.status(404);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(404);
+                            done();
+
+                        });
+                });
+        });
 
     });
 });
