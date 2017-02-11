@@ -151,13 +151,23 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    function getStatistics (req, res) {
+        const statistics = measurements.getStatistics(req.query.metric, req.query.stat, req.query.fromDateTime, req.query.toDateTime);
+        if (Array.isArray(statistics) && statistics.length > 0) {
+            res.status(200);
+            res.json(statistics);
+        }
+        res.end();
+    }
+
     return {
         postMeasurement: postMeasurement,
         getMeasurement: getMeasurement,
         putMeasurement: putMeasurement,
         patchMeasurement: patchMeasurement,
         deleteMeasurement: deleteMeasurement,
-        clearAll: clearAll
+        clearAll: clearAll,
+        getStatistics: getStatistics
     }
 })();
 

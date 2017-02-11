@@ -29,5 +29,6 @@ app.route('/measurements/:timestamp')
     .put(measurementRoutes.putMeasurement)
     .patch(measurementRoutes.patchMeasurement)
     .delete(measurementRoutes.deleteMeasurement);
+app.get('/stats', measurementRoutes.getStatistics);
 
 module.exports = app;
