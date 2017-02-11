@@ -3,6 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const measurementRoutes = require('./routes/measurement.routes');
+const statRoutes = require('./routes/statistics.routes');
 
 
 /**
@@ -29,6 +30,6 @@ app.route('/measurements/:timestamp')
     .put(measurementRoutes.putMeasurement)
     .patch(measurementRoutes.patchMeasurement)
     .delete(measurementRoutes.deleteMeasurement);
-app.get('/stats', measurementRoutes.getStatistics);
+app.get('/stats', statRoutes.getStatistics);
 
 module.exports = app;
