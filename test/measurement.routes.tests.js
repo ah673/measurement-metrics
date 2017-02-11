@@ -457,7 +457,7 @@ describe('Measurements RESTful Endpoint', () => {
         });
 
         it ('should delete a specified measurement', (done) => {
-            const timestamp = '2015-09-02T16:00:00.000Z';
+            const timestamp = '2015-09-01T16:00:00.000Z';
 
             chai.request(server)
                 .delete(`/measurements/${timestamp}`)
@@ -477,6 +477,43 @@ describe('Measurements RESTful Endpoint', () => {
                                     res.body.dewPoint.should.equal(16.9);
                                     res.body.precipitation.should.equal(0);
                                     done();
+                                });
+                        });
+                });
+        });
+
+        it ('should return 404 when deleting a measurement that does not exist', (done) => {
+            const timestamp = '2015-09-01T16:20:00.000Z';
+
+            chai.request(server)
+                .delete(`/measurements/${timestamp}`)
+                .end((err, res) => {
+                    res.should.have.status(404);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(404);
+
+                            chai.request(server)
+                                .get(`/measurements/2015-09-01T16:00:00.000Z`)
+                                .end((err, res) => {
+                                    res.should.have.status(200);
+                                    res.body.timestamp.should.equal('2015-09-01T16:00:00.000Z');
+                                    res.body.temperature.should.equal(27.1);
+                                    res.body.dewPoint.should.equal(16.7);
+                                    res.body.precipitation.should.equal(0);
+
+                                    chai.request(server)
+                                        .get(`/measurements/2015-09-01T16:10:00.000Z`)
+                                        .end((err, res) => {
+                                            res.should.have.status(200);
+                                            res.body.timestamp.should.equal('2015-09-01T16:10:00.000Z');
+                                            res.body.temperature.should.equal(27.3);
+                                            res.body.dewPoint.should.equal(16.9);
+                                            res.body.precipitation.should.equal(0);
+                                            done();
+                                        });
                                 });
                         });
                 });

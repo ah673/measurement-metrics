@@ -102,8 +102,12 @@ var MeasurementRoutes = ( () => {
 
     function deleteMeasurement (req, res) {
         const key = req.params.timestamp;
-        measurements.remove(key);
-
+        const newLength = measurements.remove(key);
+        if (newLength === null){
+            res.status(404);
+            res.end();
+            return;
+        }
         res.status(204);
         res.end();
     }
