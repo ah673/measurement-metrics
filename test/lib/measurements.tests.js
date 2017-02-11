@@ -1,14 +1,13 @@
 'use strict';
 
-const Measurements = require('../../lib/measurements');
+const measurements = require('../../lib/measurements');
 const chai = require('chai');
 const should = chai.should();
 
 
 describe ('Measurements', () => {
-    let measurements;
     beforeEach(() => {
-        measurements = new Measurements();
+        measurements.clearAll();
     });
 
     it ('should be able to add and retrieve value', () => {

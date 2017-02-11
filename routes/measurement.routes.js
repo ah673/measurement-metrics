@@ -1,11 +1,9 @@
 "use strict";
-const Measurements = require('../lib/measurements');
+const measurements = require('../lib/measurements');
 const MeasurementValidator = require('../lib/measurement-validator');
 const moment = require('moment');
 
 var MeasurementRoutes = ( () => {
-    const measurements = new Measurements();
-
     function postMeasurement (req, res) {
         if (req.body){
             try {
@@ -140,11 +138,7 @@ var MeasurementRoutes = ( () => {
         measurements.insert(measurement.timestamp, measurement);
     }
 
-    /**
-     * Figure out how to shut down and spin up server
-     * @param req
-     * @param res
-     */
+
     function clearAll (req, res) {
         measurements.clearAll();
         res.status(200);
