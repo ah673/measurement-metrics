@@ -21,7 +21,7 @@ describe('Measurements RESTful Endpoint', () => {
     describe('Add a measurement', () => {
         it ('should add the measurement when valid', (done) => {
             const measurement = {
-                timestamp: "2015-09-01T16:00:00.000Z",
+                timestamp: '2015-09-01T16:00:00.000Z',
                 temperature: 27.1,
                 dewPoint: 16.7,
                 precipitation: 0
@@ -31,11 +31,17 @@ describe('Measurements RESTful Endpoint', () => {
                 .send(measurement)
                 .end((err, res) => {
                     res.should.have.status(201);
-                    res.body.should.be.a('object');
-                    res.body.temperature.should.equal(measurement.temperature);
-                    res.body.dewPoint.should.equal(measurement.dewPoint);
-                    res.body.precipitation.should.equal(measurement.precipitation);
-                    done();
+
+                    chai.request(server)
+                        .get('/measurements/2015-09-01T16:00:00.000Z')
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.temperature.should.equal(measurement.temperature);
+                            res.body.dewPoint.should.equal(measurement.dewPoint);
+                            res.body.precipitation.should.equal(measurement.precipitation);
+                            done();
+                        });
                 });
 
         });

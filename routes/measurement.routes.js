@@ -5,30 +5,33 @@ const moment = require('moment');
 
 var MeasurementRoutes = ( () => {
     function postMeasurement (req, res) {
-        if (req.body){
-            try {
-                saveMeasurements(req.body);
+        function done (err, result) {
+            if (err) {
+                res.status(400).send(err);
+                res.end();
+            } else {
                 res.status(201);
-                res.json(measurements.getValue(req.body.timestamp));
-            } catch (e) {
-                res.status(400);
                 res.end();
             }
+        }
+
+        if (req.body){
+            saveMeasurements(req.body, done);
         } else {
-            // nothing to save
             res.status(400);
             res.end();
         }
     }
 
-    function saveMeasurements (measurements) {
+    function saveMeasurements (measurements, done) {
         if (!Array.isArray(measurements)) {
             measurements = [measurements];
         }
         if (!measurements.every(MeasurementValidator.validateMeasurement)){
-            throw new Error('Invalid measurement');
+            return done('invalid measurement');
         }
-        measurements.forEach(insertMeasurement)
+        measurements.forEach(insertMeasurement);
+        return done(null)
     }
 
     function getMeasurement (req, res) {
