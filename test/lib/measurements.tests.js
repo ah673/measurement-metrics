@@ -1,14 +1,13 @@
 'use strict';
 
-const Measurements = require('../../lib/measurements');
+const measurements = require('../../lib/measurements');
 const chai = require('chai');
 const should = chai.should();
 
 
 describe ('Measurements', () => {
-    let measurements;
     beforeEach(() => {
-        measurements = new Measurements();
+        measurements.clearAll();
     });
 
     it ('should be able to add and retrieve value', () => {
@@ -31,8 +30,11 @@ describe ('Measurements', () => {
         measurements.insert('B', 'b');
         measurements.insert('A', 'a');
 
-        measurements.sortedArray.length.should.equal(2);
-        measurements.sortedArray[0].value.should.equal('a');
+        const insertedValues = measurements.getValues();
+
+        insertedValues.length.should.equal(2);
+        insertedValues[0].should.equal('a');
+        insertedValues[1].should.equal('b');
 
     });
 
@@ -40,9 +42,11 @@ describe ('Measurements', () => {
         measurements.insert('2015-09-01T16:00:00.000Z', 'a');
         measurements.insert('2015-09-01T16:10:00.000Z', 'b');
 
-        measurements.sortedArray.length.should.equal(2);
-        measurements.sortedArray[0].value.should.equal('a');
-        measurements.sortedArray[1].value.should.equal('b');
+        const insertedValues = measurements.getValues();
+
+        insertedValues.length.should.equal(2);
+        insertedValues[0].should.equal('a');
+        insertedValues[1].should.equal('b');
 
     });
 
@@ -67,13 +71,8 @@ describe ('Measurements', () => {
 
     });
 
-    //TODO: make this test better
     it ('should throw exception if key not supplied on insert', () => {
         chai.expect(measurements.insert).to.throw(Error, /key undefined is invalid/);
-    });
-
-    it ('should throw exception if key not supplied', () => {
-        measurements.remove();
     });
 
 

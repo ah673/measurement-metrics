@@ -1,38 +1,49 @@
-"use strict";
-const Measurements = require('../lib/measurements');
+'use strict';
+const measurements = require('../lib/measurements');
 const MeasurementValidator = require('../lib/measurement-validator');
 const moment = require('moment');
 
 var MeasurementRoutes = ( () => {
-    const measurements = new Measurements();
-
+    /**
+     * Create a measurement for a timestamp
+     * timestamp is required. Any other metrics must be numbers
+     */
     function postMeasurement (req, res) {
-        if (req.body){
-            try {
-                saveMeasurements(req.body);
+        function done (err, result) {
+            if (err) {
+                res.status(400).send(err);
+                res.end();
+            } else {
                 res.status(201);
-                res.json(measurements.getValue(req.body.timestamp));
-            } catch (e) {
-                res.status(400);
                 res.end();
             }
+        }
+
+        if (req.body){
+            saveMeasurements(req.body, done);
         } else {
-            // nothing to save
             res.status(400);
             res.end();
         }
     }
 
-    function saveMeasurements (measurements) {
+    function saveMeasurements (measurements, done) {
         if (!Array.isArray(measurements)) {
             measurements = [measurements];
         }
         if (!measurements.every(MeasurementValidator.validateMeasurement)){
-            throw new Error('Invalid measurement');
+            return done('invalid measurement');
         }
-        measurements.forEach(insertMeasurement)
+        measurements.forEach(insertMeasurement);
+        return done(null)
     }
 
+    /**
+     * Retrieves Measurement(s) for a day or a specified timestamp.
+     * If a day specified in the format of 'YYYY-MM-DD' is specified, a list of
+     * Measurements within that day is returned. Otherwise the Measurement
+     * matching the timestamp is returned
+     */
     function getMeasurement (req, res) {
         const timestamp = req.params.timestamp;
         if (!timestamp) {
@@ -40,19 +51,28 @@ var MeasurementRoutes = ( () => {
             res.end();
         }
 
-        const isDay = moment(timestamp, 'YYYY-MM-DD', true).isValid();
+        const dayFormat = 'YYYY-MM-DD';
+
 
         let retrievedValues;
-        if (isDay) {
-            const measurementsForDay = getMeasurementsForDay(timestamp);
-            if (Array.isArray(measurementsForDay) && measurementsForDay.length > 0) {
-                retrievedValues = measurementsForDay;
-            }
-            else {
-                retrievedValues = null;
-            }
+        if (timestamp.length === dayFormat.length) {
+            const isDay = moment(timestamp, dayFormat, true).isValid();
+            if (isDay) {
+                const measurementsForDay = getMeasurementsForDay(timestamp);
+                if (Array.isArray(measurementsForDay) && measurementsForDay.length > 0) {
+                    retrievedValues = measurementsForDay;
+                }
+                else {
+                    retrievedValues = null;
+                }
 
-        } else {
+            } else {
+                res.status(500).send('Day format must be YYYY-MM-DD');
+                res.end();
+                return
+            }
+        }
+        else {
             retrievedValues = measurements.getValue(timestamp);
         }
 
@@ -71,6 +91,10 @@ var MeasurementRoutes = ( () => {
         return measurements.getValuesInRange(day,  endDate);
     }
 
+    /**
+     * Replaces a measurement of a given timestamp
+     * Timestamp is required.
+     */
     function putMeasurement (req, res) {
         const timestamp = req.params.timestamp;
         const measurement = req.body;
@@ -100,6 +124,10 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    /**
+     * Replaces fields of a Measurement
+     * Timestamp is required
+     */
     function patchMeasurement (req, res) {
         const measurement = req.body;
         if (!MeasurementValidator.validateMeasurement(measurement)) {
@@ -124,6 +152,10 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    /**
+     * Removes a Measurement with a specified timestamp
+     * Timestamp is required.
+     */
     function deleteMeasurement (req, res) {
         const key = req.params.timestamp;
         const newLength = measurements.remove(key);
@@ -140,35 +172,12 @@ var MeasurementRoutes = ( () => {
         measurements.insert(measurement.timestamp, measurement);
     }
 
-    /**
-     * Figure out how to shut down and spin up server
-     * @param req
-     * @param res
-     */
-    function clearAll (req, res) {
-        measurements.clearAll();
-        res.status(200);
-        res.end();
-    }
-
-    function getStatistics (req, res) {
-        const statistics = measurements.getStatistics(
-            req.query.metric, req.query.stat,
-            req.query.fromDateTime, req.query.toDateTime);
-
-        res.status(200);
-        res.json(statistics);
-        res.end();
-    }
-
     return {
         postMeasurement: postMeasurement,
         getMeasurement: getMeasurement,
         putMeasurement: putMeasurement,
         patchMeasurement: patchMeasurement,
         deleteMeasurement: deleteMeasurement,
-        clearAll: clearAll,
-        getStatistics: getStatistics
     }
 })();
 

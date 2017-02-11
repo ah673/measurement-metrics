@@ -2,18 +2,22 @@
 
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const server = require('../app');
+const server = require('../../app');
 const should = chai.should();
 
 chai.use(chaiHttp);
 
 
 describe('Measurements RESTful Endpoint', () => {
+
+    // Not a huge fan of creating a clearAll endpoint
+    // Have tried using app.close() in afterEach() but was unable to run tests
+    // without exceptions
     afterEach ((done) => {
         chai.request(server)
-            .get('/clearAll')
+            .post('/clearAll')
             .end((err, res) => {
-                res.should.have.status(200);
+                res.should.have.status(204);
                 done();
             });
     });
@@ -21,7 +25,7 @@ describe('Measurements RESTful Endpoint', () => {
     describe('Add a measurement', () => {
         it ('should add the measurement when valid', (done) => {
             const measurement = {
-                timestamp: "2015-09-01T16:00:00.000Z",
+                timestamp: '2015-09-01T16:00:00.000Z',
                 temperature: 27.1,
                 dewPoint: 16.7,
                 precipitation: 0
@@ -31,11 +35,42 @@ describe('Measurements RESTful Endpoint', () => {
                 .send(measurement)
                 .end((err, res) => {
                     res.should.have.status(201);
-                    res.body.should.be.a('object');
-                    res.body.temperature.should.equal(measurement.temperature);
-                    res.body.dewPoint.should.equal(measurement.dewPoint);
-                    res.body.precipitation.should.equal(measurement.precipitation);
-                    done();
+
+                    chai.request(server)
+                        .get('/measurements/2015-09-01T16:00:00.000Z')
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.temperature.should.equal(measurement.temperature);
+                            res.body.dewPoint.should.equal(measurement.dewPoint);
+                            res.body.precipitation.should.equal(measurement.precipitation);
+                            done();
+                        });
+                });
+
+        });
+
+        it ('should be able to add a measurement without any metrics', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const measurement = {
+                timestamp: timestamp,
+            };
+            chai.request(server)
+                .post('/measurements')
+                .send(measurement)
+                .end((err, res) => {
+                    res.should.have.status(201);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            should.not.exist(res.body.temperature);
+                            should.not.exist(res.body.dewPoint);
+                            should.not.exist(res.body.precipitation);
+                            done();
+                        });
                 });
 
         });
@@ -54,6 +89,23 @@ describe('Measurements RESTful Endpoint', () => {
                 res.should.have.status(400);
                 done();
             });
+
+        });
+
+        it('should not add the measurement with a string representation of the value', (done) => {
+            const measurement = {
+                timestamp: "2015-09-01T16:00:00.000Z",
+                temperature: '1.8',
+                dewPoint: 16.7,
+                precipitation: 0
+            };
+            chai.request(server)
+                .post('/measurements')
+                .send(measurement)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    done();
+                });
 
         });
 
@@ -82,6 +134,7 @@ describe('Measurements RESTful Endpoint', () => {
             });
 
         });
+
     });
 
     describe('Get a measurement', () => {
@@ -162,9 +215,18 @@ describe('Measurements RESTful Endpoint', () => {
             });
         });
 
+        it ('should return 404 when the timestamp to retrieve is not specified', (done) => {
+            chai.request(server)
+                .get('/measurements')
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    done();
+                });
+        });
+
     });
 
-    describe('Get a days worth of measurements', () => {
+    describe('Get measurements for a day', () => {
         beforeEach((done) => {
             const measurements = [
                 {
@@ -255,6 +317,15 @@ describe('Measurements RESTful Endpoint', () => {
                 .get('/measurements/2015-09-03')
                 .end((err, res) => {
                     res.should.have.status(404);
+                    done();
+                });
+        });
+
+        it ('should return 500 when day does not follow YYYY-MM-DD format', (done) => {
+            chai.request(server)
+                .get('/measurements/09-03-2015')
+                .end((err, res) => {
+                    res.should.have.status(500);
                     done();
                 });
         });
@@ -680,172 +751,6 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
-
-    });
-
-    describe('Get measurement statistics', () => {
-        beforeEach((done) => {
-            const measurements = [
-                {
-                    timestamp: '2015-09-01T16:00:00.000Z',
-                    temperature: 27.1,
-                    dewPoint: 16.9
-                },
-                {
-                    timestamp: '2015-09-01T16:10:00.000Z',
-                    temperature: 27.3
-                },
-                {
-                    timestamp: '2015-09-01T16:20:00.000Z',
-                    temperature: 27.5,
-                    dewPoint: 17.1
-                },
-                {
-                    timestamp: '2015-09-01T16:30:00.000Z',
-                    temperature: 27.4,
-                    dewPoint: 17.3
-                },
-                {
-                    timestamp: '2015-09-01T16:40:00.000Z',
-                    temperature: 27.2,
-                },
-                {
-                    timestamp: '2015-09-02T16:00:00.000Z',
-                    temperature: 28.1,
-                    dewPoint: 18.3
-                }
-            ];
-
-            chai.request(server)
-                .post('/measurements')
-                .send(measurements)
-                .end( (err, res) => {
-                    done();
-                });
-        });
-
-        it ('should get stats for a well-reported metric', (done) => {
-            const stats = ['min', 'max', 'average'];
-            chai.request(server)
-                .get('/stats')
-                .query({
-                    stat: stats,
-                    metric: 'temperature',
-                    fromDateTime: '2015-09-01T16:00:00.000Z',
-                    toDateTime: '2015-09-01T17:00:00.000Z'
-                })
-                .end( (err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    res.body.length.should.equal(stats.length);
-
-                    res.body[0].metric.should.equal('temperature');
-                    res.body[0].stat.should.equal(stats[0]);
-                    res.body[0].value.should.equal(27.1);
-
-                    res.body[1].metric.should.equal('temperature');
-                    res.body[1].stat.should.equal(stats[1]);
-                    res.body[1].value.should.equal(27.5);
-
-                    res.body[2].metric.should.equal('temperature');
-                    res.body[2].stat.should.equal(stats[2]);
-                    res.body[2].value.should.be.closeTo(27.3, 0.001);
-                    done();
-                });
-        });
-
-        it ('should get stats for a sparsely reported metric', (done) => {
-            const stats = ['min', 'max', 'average'];
-            chai.request(server)
-                .get('/stats')
-                .query({
-                    stat: stats,
-                    metric: 'dewPoint',
-                    fromDateTime: '2015-09-01T16:00:00.000Z',
-                    toDateTime: '2015-09-01T17:00:00.000Z'
-                })
-                .end( (err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    res.body.length.should.equal(stats.length);
-
-                    res.body[0].metric.should.equal('dewPoint');
-                    res.body[0].stat.should.equal(stats[0]);
-                    res.body[0].value.should.equal(16.9);
-
-                    res.body[1].metric.should.equal('dewPoint');
-                    res.body[1].stat.should.equal(stats[1]);
-                    res.body[1].value.should.equal(17.3);
-
-                    res.body[2].metric.should.equal('dewPoint');
-                    res.body[2].stat.should.equal(stats[2]);
-                    res.body[2].value.should.be.closeTo(17.1, 0.001);
-                    done();
-                });
-        });
-
-        it ('should return an empty array for a metric that has never been reported', (done) => {
-            const stats = ['min', 'max', 'average'];
-            chai.request(server)
-                .get('/stats')
-                .query({
-                    stat: stats,
-                    metric: 'precipitation',
-                    fromDateTime: '2015-09-01T16:00:00.000Z',
-                    toDateTime: '2015-09-01T17:00:00.000Z'
-                })
-                .end( (err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    res.body.length.should.equal(0);
-
-                    done();
-                });
-        });
-
-        it ('should get statistics for more than one metric', (done) => {
-            const stats = ['min', 'max', 'average'];
-            const metrics = ['temperature', 'dewPoint'];
-            chai.request(server)
-                .get('/stats')
-                .query({
-                    stat: stats,
-                    metric: metrics,
-                    fromDateTime: '2015-09-01T16:00:00.000Z',
-                    toDateTime: '2015-09-01T17:00:00.000Z'
-                })
-                .end( (err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    res.body.length.should.equal(stats.length * metrics.length);
-
-                    res.body[0].metric.should.equal(metrics[0]);
-                    res.body[0].stat.should.equal(stats[0]);
-                    res.body[0].value.should.equal(27.1);
-
-                    res.body[1].metric.should.equal(metrics[0]);
-                    res.body[1].stat.should.equal(stats[1]);
-                    res.body[1].value.should.equal(27.5);
-
-                    res.body[2].metric.should.equal(metrics[0]);
-                    res.body[2].stat.should.equal(stats[2]);
-                    res.body[2].value.should.be.closeTo(27.3, 0.001);
-
-                    res.body[3].metric.should.equal(metrics[1]);
-                    res.body[3].stat.should.equal(stats[0]);
-                    res.body[3].value.should.be.equal(16.9);
-
-                    res.body[4].metric.should.equal(metrics[1]);
-                    res.body[4].stat.should.equal(stats[1]);
-                    res.body[4].value.should.be.equal(17.3);
-
-                    res.body[5].metric.should.equal(metrics[1]);
-                    res.body[5].stat.should.equal(stats[2]);
-                    res.body[5].value.should.be.closeTo(17.1, 0.01);
-
-                    done();
-                });
-        });
 
     });
 
