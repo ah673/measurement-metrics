@@ -47,7 +47,7 @@ var MeasurementRoutes = ( () => {
         }
     }
 
-    function updateMeasurement(req, res) {
+    function putMeasurement (req, res) {
         const timestamp = req.params.timestamp;
         const measurement = req.body;
         if (!timestamp) {
@@ -66,7 +66,7 @@ var MeasurementRoutes = ( () => {
             res.end();
             return;
         }
-        const updated = measurements.update(timestamp, req.body);
+        const updated = measurements.replace(timestamp, req.body);
         if (updated === null) {
             res.status(404);
             res.end();
@@ -76,14 +76,33 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    function patchMeasurement (req, res) {
+       measurements.update(req.params.timestamp, req.body);
+        res.status(204);
+        res.end();
+    }
+
     function insertMeasurement (measurement) {
         measurements.insert(measurement.timestamp, measurement);
+    }
+
+    /**
+     * Figure out how to shut down and spin up server
+     * @param req
+     * @param res
+     */
+    function clearAll (req, res) {
+        measurements.clearAll();
+        res.status(200);
+        res.end();
     }
 
     return {
         postMeasurement: postMeasurement,
         getMeasurement: getMeasurement,
-        updateMeasurement: updateMeasurement
+        putMeasurement: putMeasurement,
+        patchMeasurement: patchMeasurement,
+        clearAll: clearAll
     }
 })();
 

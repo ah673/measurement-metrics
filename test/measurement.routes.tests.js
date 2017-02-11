@@ -9,10 +9,17 @@ chai.use(chaiHttp);
 
 
 describe('Measurements RESTful Endpoint', () => {
+    afterEach ((done) => {
+        chai.request(server)
+            .get('/clearAll')
+            .end((err, res) => {
+                res.should.have.status(200);
+                done();
+            });
+    });
 
     describe('Add a measurement', () => {
-
-        it('should add the measurement when valid', (done) => {
+        it ('should add the measurement when valid', (done) => {
             const measurement = {
                 timestamp: "2015-09-01T16:00:00.000Z",
                 temperature: 27.1,
@@ -150,7 +157,7 @@ describe('Measurements RESTful Endpoint', () => {
 
     });
 
-    describe('Update a measurement', () => {
+    describe('Replace a measurement', () => {
         beforeEach( (done)=> {
             const measurements = [
                 {
@@ -278,6 +285,60 @@ describe('Measurements RESTful Endpoint', () => {
                 done();
             });
         });
+
+    });
+
+    describe('Update a measurement', () => {
+        beforeEach( (done)=> {
+            const measurements = [
+                {
+                    timestamp: '2015-09-01T16:00:00.000Z',
+                    temperature: 27.1,
+                    dewPoint: 16.7,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:10:00.000Z',
+                    temperature: 27.3,
+                    dewPoint: 16.9,
+                    precipitation: 0
+                }
+            ];
+            chai.request(server)
+                .post('/measurements')
+                .send(measurements)
+                .end( (err, res) => {
+                    done();
+                });
+        });
+
+        it ('should be able to update a measurement when valid values supplied', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const fieldsToUpdate = {
+                timestamp: timestamp,
+                precipitation: 12.3
+            };
+
+            chai.request(server)
+                .patch(`/measurements/${timestamp}`)
+                .send(fieldsToUpdate)
+                .end((err, res) => {
+                    res.should.have.status(204);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            res.body.temperature.should.equal(27.1);
+                            res.body.dewPoint.should.equal(16.7);
+                            res.body.precipitation.should.equal(fieldsToUpdate.precipitation);
+                            done();
+
+                        });
+                });
+        });
+
 
     });
 });
