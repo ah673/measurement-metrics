@@ -1,6 +1,7 @@
 "use strict";
 const Measurements = require('../lib/measurements');
 const MeasurementValidator = require('../lib/measurement-validator');
+const moment = require('moment');
 
 var MeasurementRoutes = ( () => {
     const measurements = new Measurements();
@@ -33,18 +34,34 @@ var MeasurementRoutes = ( () => {
     }
 
     function getMeasurement (req, res) {
-        if (!req.params.timestamp) {
+        const timestamp = req.params.timestamp;
+        if (!timestamp) {
             res.status(404);
             res.end();
         }
-        const retrievedValue = measurements.getValue(req.params.timestamp);
-        if (retrievedValue){
+
+        const isDay = moment(timestamp, 'YYYY-MM-DD', true).isValid();
+
+        let retrievedValues;
+        if (isDay) {
+            retrievedValues = getMeasurementsForDay(timestamp);
+        } else {
+            retrievedValues = measurements.getValue(timestamp);
+        }
+
+        if (retrievedValues){
             res.status(200);
-            res.json(retrievedValue);
+            res.json(retrievedValues);
         } else {
             res.status(404);
             res.end();
         }
+    }
+
+    function getMeasurementsForDay (day) {
+        const startDateAsMomentDate = moment(day, 'YYYY-MM-DD').utc();
+        const endDate = startDateAsMomentDate.add(1, 'days').startOf('day').toDate().toISOString();
+        return measurements.getRange(day,  endDate);
     }
 
     function putMeasurement (req, res) {
