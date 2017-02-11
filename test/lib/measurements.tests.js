@@ -31,8 +31,11 @@ describe ('Measurements', () => {
         measurements.insert('B', 'b');
         measurements.insert('A', 'a');
 
-        measurements.sortedArray.length.should.equal(2);
-        measurements.sortedArray[0].value.should.equal('a');
+        const insertedValues = measurements.getValues();
+
+        insertedValues.length.should.equal(2);
+        insertedValues[0].should.equal('a');
+        insertedValues[1].should.equal('b');
 
     });
 
@@ -40,9 +43,11 @@ describe ('Measurements', () => {
         measurements.insert('2015-09-01T16:00:00.000Z', 'a');
         measurements.insert('2015-09-01T16:10:00.000Z', 'b');
 
-        measurements.sortedArray.length.should.equal(2);
-        measurements.sortedArray[0].value.should.equal('a');
-        measurements.sortedArray[1].value.should.equal('b');
+        const insertedValues = measurements.getValues();
+
+        insertedValues.length.should.equal(2);
+        insertedValues[0].should.equal('a');
+        insertedValues[1].should.equal('b');
 
     });
 
