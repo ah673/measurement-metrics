@@ -9,6 +9,9 @@ chai.use(chaiHttp);
 
 
 describe('Get measurement statistics', () => {
+    // Not a huge fan of creating a clearAll endpoint
+    // Have tried using app.close() in afterEach() but was unable to run tests
+    // without exceptions
     afterEach ((done) => {
         chai.request(server)
             .post('/clearAll')

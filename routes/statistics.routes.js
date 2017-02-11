@@ -3,6 +3,12 @@
 const measurements = require('../lib/measurements');
 
 var StatisticRoutes = (function () {
+    /**
+     * Given a fromDateTime and a toDateTime, provides statistics on specified metric.
+     * Supported statistics : min, max, average
+     * @param req : request
+     * @param res : response
+     */
     function getStatistics (req, res) {
         const startDate = req.query.fromDateTime;
         const endDate = req.query.toDateTime;

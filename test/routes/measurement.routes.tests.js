@@ -9,6 +9,10 @@ chai.use(chaiHttp);
 
 
 describe('Measurements RESTful Endpoint', () => {
+
+    // Not a huge fan of creating a clearAll endpoint
+    // Have tried using app.close() in afterEach() but was unable to run tests
+    // without exceptions
     afterEach ((done) => {
         chai.request(server)
             .post('/clearAll')
@@ -46,6 +50,31 @@ describe('Measurements RESTful Endpoint', () => {
 
         });
 
+        it ('should be able to add a measurement without any metrics', (done) => {
+            const timestamp = '2015-09-01T16:00:00.000Z';
+            const measurement = {
+                timestamp: timestamp,
+            };
+            chai.request(server)
+                .post('/measurements')
+                .send(measurement)
+                .end((err, res) => {
+                    res.should.have.status(201);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.be.a('object');
+                            should.not.exist(res.body.temperature);
+                            should.not.exist(res.body.dewPoint);
+                            should.not.exist(res.body.precipitation);
+                            done();
+                        });
+                });
+
+        });
+
         it('should not add the measurement with invalid value', (done) => {
             const measurement = {
                 timestamp: "2015-09-01T16:00:00.000Z",
@@ -60,6 +89,23 @@ describe('Measurements RESTful Endpoint', () => {
                 res.should.have.status(400);
                 done();
             });
+
+        });
+
+        it('should not add the measurement with a string representation of the value', (done) => {
+            const measurement = {
+                timestamp: "2015-09-01T16:00:00.000Z",
+                temperature: '1.8',
+                dewPoint: 16.7,
+                precipitation: 0
+            };
+            chai.request(server)
+                .post('/measurements')
+                .send(measurement)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    done();
+                });
 
         });
 
@@ -88,6 +134,7 @@ describe('Measurements RESTful Endpoint', () => {
             });
 
         });
+
     });
 
     describe('Get a measurement', () => {
@@ -179,7 +226,7 @@ describe('Measurements RESTful Endpoint', () => {
 
     });
 
-    describe('Get a days worth of measurements', () => {
+    describe('Get measurements for a day', () => {
         beforeEach((done) => {
             const measurements = [
                 {
@@ -270,6 +317,15 @@ describe('Measurements RESTful Endpoint', () => {
                 .get('/measurements/2015-09-03')
                 .end((err, res) => {
                     res.should.have.status(404);
+                    done();
+                });
+        });
+
+        it ('should return 500 when day does not follow YYYY-MM-DD format', (done) => {
+            chai.request(server)
+                .get('/measurements/09-03-2015')
+                .end((err, res) => {
+                    res.should.have.status(500);
                     done();
                 });
         });

@@ -4,6 +4,10 @@ const MeasurementValidator = require('../lib/measurement-validator');
 const moment = require('moment');
 
 var MeasurementRoutes = ( () => {
+    /**
+     * Create a measurement for a timestamp
+     * timestamp is required. Any other metrics must be numbers
+     */
     function postMeasurement (req, res) {
         function done (err, result) {
             if (err) {
@@ -34,6 +38,12 @@ var MeasurementRoutes = ( () => {
         return done(null)
     }
 
+    /**
+     * Retrieves Measurement(s) for a day or a specified timestamp.
+     * If a day specified in the format of 'YYYY-MM-DD' is specified, a list of
+     * Measurements within that day is returned. Otherwise the Measurement
+     * matching the timestamp is returned
+     */
     function getMeasurement (req, res) {
         const timestamp = req.params.timestamp;
         if (!timestamp) {
@@ -41,19 +51,28 @@ var MeasurementRoutes = ( () => {
             res.end();
         }
 
-        const isDay = moment(timestamp, 'YYYY-MM-DD', true).isValid();
+        const dayFormat = 'YYYY-MM-DD';
+
 
         let retrievedValues;
-        if (isDay) {
-            const measurementsForDay = getMeasurementsForDay(timestamp);
-            if (Array.isArray(measurementsForDay) && measurementsForDay.length > 0) {
-                retrievedValues = measurementsForDay;
-            }
-            else {
-                retrievedValues = null;
-            }
+        if (timestamp.length === dayFormat.length) {
+            const isDay = moment(timestamp, dayFormat, true).isValid();
+            if (isDay) {
+                const measurementsForDay = getMeasurementsForDay(timestamp);
+                if (Array.isArray(measurementsForDay) && measurementsForDay.length > 0) {
+                    retrievedValues = measurementsForDay;
+                }
+                else {
+                    retrievedValues = null;
+                }
 
-        } else {
+            } else {
+                res.status(500).send('Day format must be YYYY-MM-DD');
+                res.end();
+                return
+            }
+        }
+        else {
             retrievedValues = measurements.getValue(timestamp);
         }
 
@@ -72,6 +91,10 @@ var MeasurementRoutes = ( () => {
         return measurements.getValuesInRange(day,  endDate);
     }
 
+    /**
+     * Replaces a measurement of a given timestamp
+     * Timestamp is required.
+     */
     function putMeasurement (req, res) {
         const timestamp = req.params.timestamp;
         const measurement = req.body;
@@ -101,6 +124,10 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    /**
+     * Replaces fields of a Measurement
+     * Timestamp is required
+     */
     function patchMeasurement (req, res) {
         const measurement = req.body;
         if (!MeasurementValidator.validateMeasurement(measurement)) {
@@ -125,6 +152,10 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    /**
+     * Removes a Measurement with a specified timestamp
+     * Timestamp is required.
+     */
     function deleteMeasurement (req, res) {
         const key = req.params.timestamp;
         const newLength = measurements.remove(key);
