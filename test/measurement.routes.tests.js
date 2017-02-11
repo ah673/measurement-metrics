@@ -213,7 +213,7 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
-        it('should be able to retrieve measurements for a day', (done) => {
+        it ('should be able to retrieve measurements for a day', (done) => {
             chai.request(server)
                 .get('/measurements/2015-09-01')
                 .end((err, res) => {
@@ -246,6 +246,15 @@ describe('Measurements RESTful Endpoint', () => {
                     res.body[4].dewPoint.should.equal(17.2);
                     res.body[4].precipitation.should.equal(0);
 
+                    done();
+                });
+        });
+
+        it ('should return 404 when measurements do not exist', (done) => {
+            chai.request(server)
+                .get('/measurements/2015-09-03')
+                .end((err, res) => {
+                    res.should.have.status(404);
                     done();
                 });
         });

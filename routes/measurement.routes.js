@@ -44,7 +44,14 @@ var MeasurementRoutes = ( () => {
 
         let retrievedValues;
         if (isDay) {
-            retrievedValues = getMeasurementsForDay(timestamp);
+            const measurementsForDay = getMeasurementsForDay(timestamp);
+            if (Array.isArray(measurementsForDay) && measurementsForDay.length > 0) {
+                retrievedValues = measurementsForDay;
+            }
+            else {
+                retrievedValues = null;
+            }
+
         } else {
             retrievedValues = measurements.getValue(timestamp);
         }
@@ -61,7 +68,7 @@ var MeasurementRoutes = ( () => {
     function getMeasurementsForDay (day) {
         const startDateAsMomentDate = moment(day, 'YYYY-MM-DD').utc();
         const endDate = startDateAsMomentDate.add(1, 'days').startOf('day').toDate().toISOString();
-        return measurements.getRange(day,  endDate);
+        return measurements.getValuesInRange(day,  endDate);
     }
 
     function putMeasurement (req, res) {
