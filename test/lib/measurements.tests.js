@@ -160,13 +160,13 @@ describe ('Measurements', () => {
 
     });
 
-    it.only('should return null when updating the value of a key that does not exist', () => {
+    it('should return null when updating the value of a key that does not exist', () => {
         const updateStatus = measurements.update('nonexistent', 'value');
         should.not.exist(updateStatus);
         should.equal(updateStatus, null);
     });
 
-    it.only('should return null when replacing the value of a key that does not exist', () => {
+    it('should return null when replacing the value of a key that does not exist', () => {
         const replaceStatus = measurements.replace('nonexistent', 'value');
         should.not.exist(replaceStatus);
         should.equal(replaceStatus, null);
