@@ -468,8 +468,16 @@ describe('Measurements RESTful Endpoint', () => {
                         .get(`/measurements/${timestamp}`)
                         .end((err, res) => {
                             res.should.have.status(404);
-                            done();
 
+                            chai.request(server)
+                                .get(`/measurements/2015-09-01T16:10:00.000Z`)
+                                .end((err, res) => {
+                                    res.should.have.status(200);
+                                    res.body.temperature.should.equal(27.3);
+                                    res.body.dewPoint.should.equal(16.9);
+                                    res.body.precipitation.should.equal(0);
+                                    done();
+                                });
                         });
                 });
         });
