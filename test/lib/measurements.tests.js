@@ -71,13 +71,8 @@ describe ('Measurements', () => {
 
     });
 
-    //TODO: make this test better
     it ('should throw exception if key not supplied on insert', () => {
         chai.expect(measurements.insert).to.throw(Error, /key undefined is invalid/);
-    });
-
-    it ('should throw exception if key not supplied', () => {
-        measurements.remove();
     });
 
 
