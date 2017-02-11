@@ -250,6 +250,69 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
+        describe ('additional test case for getting day of data', () => {
+            before( (done) => {
+                chai.request(server)
+                    .post('/measurements')
+                    .send([{
+                        timestamp: '2015-08-31T00:00:00.000Z',
+                        temperature: 20.2,
+                        dewPoint: 14.0,
+                        precipitation: 1
+                    }, {
+                        timestamp: '2015-09-01T00:00:00.000Z',
+                        temperature: 10.2,
+                        dewPoint: 15.0,
+                        precipitation: 2.0
+                    }])
+                    .end( (err, res) => {
+                        done();
+                    });
+            });
+
+            it('should not retrieve values before day', (done) => {
+                chai.request(server)
+                    .get('/measurements/2015-09-01')
+                    .end((err, res) => {
+                        res.should.have.status(200);
+                        res.body.should.be.a('array');
+                        res.body.length.should.equal(6);
+
+                        res.body[0].timestamp.should.equal('2015-09-01T00:00:00.000Z');
+                        res.body[0].temperature.should.equal(10.2);
+                        res.body[0].dewPoint.should.equal(15.0);
+                        res.body[0].precipitation.should.equal(2.0);
+
+                        res.body[1].timestamp.should.equal('2015-09-01T16:00:00.000Z');
+                        res.body[1].temperature.should.equal(27.1);
+                        res.body[1].dewPoint.should.equal(16.7);
+                        res.body[1].precipitation.should.equal(0);
+
+                        res.body[2].timestamp.should.equal('2015-09-01T16:10:00.000Z');
+                        res.body[2].temperature.should.equal(27.3);
+                        res.body[2].dewPoint.should.equal(16.9);
+                        res.body[2].precipitation.should.equal(0);
+
+                        res.body[3].timestamp.should.equal('2015-09-01T16:20:00.000Z');
+                        res.body[3].temperature.should.equal(27.5);
+                        res.body[3].dewPoint.should.equal(17.1);
+                        res.body[3].precipitation.should.equal(0);
+
+                        res.body[4].timestamp.should.equal('2015-09-01T16:30:00.000Z');
+                        res.body[4].temperature.should.equal(27.4);
+                        res.body[4].dewPoint.should.equal(17.3);
+                        res.body[4].precipitation.should.equal(0);
+
+                        res.body[5].timestamp.should.equal('2015-09-01T16:40:00.000Z');
+                        res.body[5].temperature.should.equal(27.2);
+                        res.body[5].dewPoint.should.equal(17.2);
+                        res.body[5].precipitation.should.equal(0);
+
+                        done();
+                    });
+            });
+
+        })
 
     });
 
