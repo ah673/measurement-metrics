@@ -724,7 +724,7 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
-        it.only ('should get stats for a well-reported metric', (done) => {
+        it ('should get stats for a well-reported metric', (done) => {
             const stats = ['min', 'max', 'average'];
             chai.request(server)
                 .get('/stats')
@@ -737,7 +737,7 @@ describe('Measurements RESTful Endpoint', () => {
                 .end( (err, res) => {
                     res.should.have.status(200);
                     res.body.should.be.a('array');
-                    res.body.length.should.equal(3);
+                    res.body.length.should.equal(stats.length);
 
                     res.body[0].metric.should.equal('temperature');
                     res.body[0].stat.should.equal(stats[0]);
@@ -750,6 +750,36 @@ describe('Measurements RESTful Endpoint', () => {
                     res.body[2].metric.should.equal('temperature');
                     res.body[2].stat.should.equal(stats[2]);
                     res.body[2].value.should.be.closeTo(27.3, 0.001);
+                    done();
+                });
+        });
+
+        it ('should get stats for a sparsely reported metric', (done) => {
+            const stats = ['min', 'max', 'average'];
+            chai.request(server)
+                .get('/stats')
+                .query({
+                    stat: stats,
+                    metric: 'dewPoint',
+                    fromDateTime: '2015-09-01T16:00:00.000Z',
+                    toDateTime: '2015-09-01T17:00:00.000Z'
+                })
+                .end( (err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('array');
+                    res.body.length.should.equal(stats.length);
+
+                    res.body[0].metric.should.equal('dewPoint');
+                    res.body[0].stat.should.equal(stats[0]);
+                    res.body[0].value.should.equal(16.9);
+
+                    res.body[1].metric.should.equal('dewPoint');
+                    res.body[1].stat.should.equal(stats[1]);
+                    res.body[1].value.should.equal(17.3);
+
+                    res.body[2].metric.should.equal('dewPoint');
+                    res.body[2].stat.should.equal(stats[2]);
+                    res.body[2].value.should.be.closeTo(17.1, 0.001);
                     done();
                 });
         });
