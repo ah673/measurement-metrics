@@ -431,4 +431,49 @@ describe('Measurements RESTful Endpoint', () => {
         });
 
     });
+
+    describe('Delete a measurement', () => {
+        beforeEach( (done)=> {
+            const measurements = [
+                {
+                    timestamp: '2015-09-01T16:00:00.000Z',
+                    temperature: 27.1,
+                    dewPoint: 16.7,
+                    precipitation: 0
+                },
+                {
+                    timestamp: '2015-09-01T16:10:00.000Z',
+                    temperature: 27.3,
+                    dewPoint: 16.9,
+                    precipitation: 0
+                }
+            ];
+            chai.request(server)
+                .post('/measurements')
+                .send(measurements)
+                .end( (err, res) => {
+                    done();
+                });
+        });
+
+        it ('should delete a specified measurement', (done) => {
+            const timestamp = '2015-09-02T16:00:00.000Z';
+
+            chai.request(server)
+                .delete(`/measurements/${timestamp}`)
+                .end((err, res) => {
+                    res.should.have.status(204);
+
+                    chai.request(server)
+                        .get(`/measurements/${timestamp}`)
+                        .end((err, res) => {
+                            res.should.have.status(404);
+                            done();
+
+                        });
+                });
+        });
+
+
+    });
 });

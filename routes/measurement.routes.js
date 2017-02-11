@@ -100,6 +100,14 @@ var MeasurementRoutes = ( () => {
         res.end();
     }
 
+    function deleteMeasurement (req, res) {
+        const key = req.params.timestamp;
+        measurements.remove(key);
+
+        res.status(204);
+        res.end();
+    }
+
     function insertMeasurement (measurement) {
         measurements.insert(measurement.timestamp, measurement);
     }
@@ -120,6 +128,7 @@ var MeasurementRoutes = ( () => {
         getMeasurement: getMeasurement,
         putMeasurement: putMeasurement,
         patchMeasurement: patchMeasurement,
+        deleteMeasurement: deleteMeasurement,
         clearAll: clearAll
     }
 })();
