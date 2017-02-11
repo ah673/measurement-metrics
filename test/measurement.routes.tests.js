@@ -784,6 +784,25 @@ describe('Measurements RESTful Endpoint', () => {
                 });
         });
 
+        it ('should return an empty array for a metric that has never been reported', (done) => {
+            const stats = ['min', 'max', 'average'];
+            chai.request(server)
+                .get('/stats')
+                .query({
+                    stat: stats,
+                    metric: 'precipitation',
+                    fromDateTime: '2015-09-01T16:00:00.000Z',
+                    toDateTime: '2015-09-01T17:00:00.000Z'
+                })
+                .end( (err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('array');
+                    res.body.length.should.equal(0);
+
+                    done();
+                });
+        })
+
     })
 
 });
