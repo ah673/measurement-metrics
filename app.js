@@ -16,7 +16,7 @@ app.use(bodyParser.json({ type: 'application/json'}));
 
 let server = app.listen((process.env.PORT || 3000), function () {
     var port = server.address().port;
-    console.log('Example app listening at port %s', port);
+    console.log('Metrics app listening on port %s', port);
 });
 
 
@@ -24,7 +24,6 @@ let server = app.listen((process.env.PORT || 3000), function () {
 /**
  * Routes
  */
-app.post('/clearAll', clearAllRoute.clearAll);
 app.post('/measurements', measurementRoutes.postMeasurement);
 app.route('/measurements/:timestamp')
     .get(measurementRoutes.getMeasurement)
@@ -32,5 +31,6 @@ app.route('/measurements/:timestamp')
     .patch(measurementRoutes.patchMeasurement)
     .delete(measurementRoutes.deleteMeasurement);
 app.get('/stats', statRoutes.getStatistics);
+app.post('/clearAll', clearAllRoute.clearAll);
 
 module.exports = app;
