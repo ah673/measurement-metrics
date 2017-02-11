@@ -181,4 +181,65 @@ describe('Get measurement statistics', () => {
             });
     });
 
+    it ('should return 500 when stat is not supported', (done) => {
+        const stats = ['median'];
+        const metrics = 'temperature';
+        chai.request(server)
+            .get('/stats')
+            .query({
+                stat: stats,
+                metric: metrics,
+                fromDateTime: '2015-09-01T16:00:00.000Z',
+                toDateTime: '2015-09-01T17:00:00.000Z'
+            })
+            .end( (err, res) => {
+                res.should.have.status(500);
+                done();
+            });
+    });
+
+    it ('should return 500 when date range is not supplied', (done) => {
+        const stats = 'average';
+        const metrics = 'temperature';
+        chai.request(server)
+            .get('/stats')
+            .query({
+                stat: stats,
+                metric: metrics,
+            })
+            .end( (err, res) => {
+                res.should.have.status(500);
+                done();
+            });
+    });
+
+    it ('should return 500 when stat is not supplied', (done) => {
+        const metrics = 'temperature';
+        chai.request(server)
+            .get('/stats')
+            .query({
+                metric: metrics,
+                fromDateTime: '2015-09-01T16:00:00.000Z',
+                toDateTime: '2015-09-01T17:00:00.000Z'
+            })
+            .end( (err, res) => {
+                res.should.have.status(500);
+                done();
+            });
+    });
+
+    it ('should return 500 when metric is not supplied', (done) => {
+        chai.request(server)
+            .get('/stats')
+            .query({
+                stat: 'average',
+                fromDateTime: '2015-09-01T16:00:00.000Z',
+                toDateTime: '2015-09-01T17:00:00.000Z'
+            })
+            .end( (err, res) => {
+                res.should.have.status(500);
+                done();
+            });
+    });
+
 });
