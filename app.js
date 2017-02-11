@@ -2,7 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const measurements = require('./routes/measurements');
+const measurementRoutes = require('./routes/measurement.routes');
 
 
 /**
@@ -11,16 +11,24 @@ const measurements = require('./routes/measurements');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.json({ type: 'application/json'}));
-const portToUse = process.env.PORT || 3000;
-app.listen(portToUse, function () {
-    console.log('application listening on port', portToUse);
+
+let server = app.listen((process.env.PORT || 3000), function () {
+    var port = server.address().port;
+    console.log('Example app listening at port %s', port);
 });
+
 
 
 /**
  * Routes
  */
-app.post('/measurements', measurements.postMeasurement);
-
+app.get('/clearAll', measurementRoutes.clearAll);
+app.post('/measurements', measurementRoutes.postMeasurement);
+app.route('/measurements/:timestamp')
+    .get(measurementRoutes.getMeasurement)
+    .put(measurementRoutes.putMeasurement)
+    .patch(measurementRoutes.patchMeasurement)
+    .delete(measurementRoutes.deleteMeasurement);
+app.get('/stats', measurementRoutes.getStatistics);
 
 module.exports = app;
