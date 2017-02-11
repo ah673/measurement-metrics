@@ -242,4 +242,23 @@ describe('Get measurement statistics', () => {
             });
     });
 
+    it ('should return empty array when end date before start date', (done) => {
+        const stats = ['average'];
+        const metrics = 'temperature';
+        chai.request(server)
+            .get('/stats')
+            .query({
+                stat: stats,
+                metric: metrics,
+                fromDateTime: '2015-09-01T17:00:00.000Z',
+                toDateTime: '2015-09-01T16:00:00.000Z'
+            })
+            .end( (err, res) => {
+                res.should.have.status(200);
+                res.body.should.be.a('array');
+                res.body.length.should.equal(0);
+                done();
+            });
+    })
+
 });

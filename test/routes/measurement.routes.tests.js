@@ -168,6 +168,15 @@ describe('Measurements RESTful Endpoint', () => {
             });
         });
 
+        it ('should return 404 when the timestamp to retrieve is not specified', (done) => {
+            chai.request(server)
+                .get('/measurements')
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    done();
+                });
+        });
+
     });
 
     describe('Get a days worth of measurements', () => {
