@@ -801,8 +801,52 @@ describe('Measurements RESTful Endpoint', () => {
 
                     done();
                 });
-        })
+        });
 
-    })
+        it ('should get statistics for more than one metric', (done) => {
+            const stats = ['min', 'max', 'average'];
+            const metrics = ['temperature', 'dewPoint'];
+            chai.request(server)
+                .get('/stats')
+                .query({
+                    stat: stats,
+                    metric: metrics,
+                    fromDateTime: '2015-09-01T16:00:00.000Z',
+                    toDateTime: '2015-09-01T17:00:00.000Z'
+                })
+                .end( (err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('array');
+                    res.body.length.should.equal(stats.length * metrics.length);
+
+                    res.body[0].metric.should.equal(metrics[0]);
+                    res.body[0].stat.should.equal(stats[0]);
+                    res.body[0].value.should.equal(27.1);
+
+                    res.body[1].metric.should.equal(metrics[0]);
+                    res.body[1].stat.should.equal(stats[1]);
+                    res.body[1].value.should.equal(27.5);
+
+                    res.body[2].metric.should.equal(metrics[0]);
+                    res.body[2].stat.should.equal(stats[2]);
+                    res.body[2].value.should.be.closeTo(27.3, 0.001);
+
+                    res.body[3].metric.should.equal(metrics[1]);
+                    res.body[3].stat.should.equal(stats[0]);
+                    res.body[3].value.should.be.equal(16.9);
+
+                    res.body[4].metric.should.equal(metrics[1]);
+                    res.body[4].stat.should.equal(stats[1]);
+                    res.body[4].value.should.be.equal(17.3);
+
+                    res.body[5].metric.should.equal(metrics[1]);
+                    res.body[5].stat.should.equal(stats[2]);
+                    res.body[5].value.should.be.closeTo(17.1, 0.01);
+
+                    done();
+                });
+        });
+
+    });
 
 });
